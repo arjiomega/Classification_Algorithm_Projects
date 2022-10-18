@@ -1,4 +1,3 @@
-from tkinter import N
 from importlist import *
 from ml_algorithms import *
 from functionlist import *
@@ -18,7 +17,6 @@ print("\nChoose classification algorithm solver \n\
     3: Logistic Algorithm (TensorFlow) \n\
     \n")
 class_solver = input("Input: ")
-
 
 
 

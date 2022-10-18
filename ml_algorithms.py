@@ -14,8 +14,14 @@ class solver:
         print_cost = input("\nprint cost? (leave blank and press enter if not): ")
         print_accuracy = input("\nprint accuracy? (leave blank and press enter if not): ")
 
-        log_alg(X_train,Y_train,X_test,Y_test, int(num_iterations),float(learning_rate),bool(print_cost),bool(print_accuracy))
+        print("\n-------------------------------------------------\n")
 
+        t_start = time.time()
+
+        log_alg(X_train,Y_train,X_test,Y_test, int(num_iterations),float(learning_rate),bool(print_cost),bool(print_accuracy))
+        
+        print("\nrun time: ",time.time() - t_start, "s")
+        
         return 1
 
     def log_alg_sk():
