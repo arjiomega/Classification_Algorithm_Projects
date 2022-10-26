@@ -3,7 +3,8 @@ from importlist import *
 
 
 
-DataList = ["data/winequality-red.csv"]
+DataList = ["data/winequality-red.csv", 
+            "../large_dataset/ground_truth.csv"]
 
 class csv2arrays:
 
@@ -31,6 +32,73 @@ class csv2arrays:
         Y_train = Y.values
 
         return X_train,Y_train
+    
+    def tomAndJerry(data2train):
+        data = pd.read_csv(DataList[data2train])
+
+        data_imgSetLoc = "../large_dataset/tom_and_jerry/tom_and_jerry/combined/"
+
+        # Check data
+        #print(data.head())
+
+        # Information about the data columns
+        #print(data.info())
+
+
+        dataset_dict = {}
+
+        # (1,5478) -> (imageArray, number of examples)
+        #X = data[['filename']].T
+        # (2,5478) 
+        Y = data[['tom','jerry']].T
+        #print(X.shape,Y.shape)
+
+
+        file_list = os.listdir(data_imgSetLoc)
+
+        file_list.sort(key= lambda i: int(i.lstrip('frame').rstrip('.jpg')))
+
+
+        #index = 0
+
+        # for file in file_list:
+        #     comp_path = Image.open(data_imgSetLoc + file)
+        #     comp_path = comp_path.resize((256,144))#((854,480))
+
+            
+
+        #     toAdd = asarray(comp_path)
+
+        #     # to visualize
+        #     # plt.imshow(toAdd, interpolation='nearest')
+        #     # plt.show()
+
+        #     toAdd = np.reshape(toAdd, (1,-1))
+
+
+
+        #     if index < 1:
+        #         index += 1
+        #         X = copy.deepcopy(toAdd)
+
+        #     else:
+        #         X = np.append(X, toAdd, axis=0)
+              
+        #     print(file)
+
+        # prepare dataset file
+        # h5f = h5py.File('TomAndJerryDataset.h5','w')
+        # h5f.create_dataset('dataset_1', data = X)
+        # h5f.close()
+
+        #load dataset from a file
+        h5f_load = h5py.File('../large_dataset/TomAndJerryDataset.h5','r')
+        X = h5f_load['dataset_1'][:]
+        h5f_load.close()
+
+        return X,Y
+
+
 
 def normalize(X):
 
@@ -484,7 +552,7 @@ def linear_backward(dZ, cache):
     """
     A_prev, W, b = cache
     m = A_prev.shape[1]
-
+    print(dZ.shape)
     dW = 1/m * np.dot(dZ,A_prev.T)
     db = 1/m * np.sum(dZ, axis=1, keepdims=True)
     dA_prev = np.dot(W.T,dZ)

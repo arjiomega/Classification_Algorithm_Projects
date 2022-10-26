@@ -36,14 +36,15 @@ class solver:
         return 1
 
     def nn(X_train,Y_train,X_test,Y_test):
-        n_x = X_train.shape[1]     # For image: num_px * num_px * 3
+        n_x = X_train.shape[0]     # For image: num_px * num_px * 3
         n_h = 7
-        n_y = 1
+        n_y = Y_train.shape[0]
         layers_dims = (n_x, n_h, n_y)
         learning_rate = 0.0075
+        
         #X = 1599,11 ; Y = 1599,
-        X_train = X_train.T
-        Y_train = (np.reshape(Y_train,(-1,1))).T
+        # X_train = X_train.T
+        # Y_train = (np.reshape(Y_train,(-1,1))).T
 
         parameters, costs = two_layer_model(X_train, Y_train, layers_dims, num_iterations = 2500, print_cost=True)
 
@@ -55,11 +56,18 @@ solverList = [solver.log_alg_np, solver.log_alg_npv, solver.log_alg_sk, solver.l
 
 def run(data2train,class_solver):
     
-    X, Y = csv2arrays.redWine(int(data2train))
-    print(X.shape,Y.shape)
-    X = normalize(X)
+    #X, Y = csv2arrays.redWine(int(data2train))
+    X, Y = csv2arrays.tomAndJerry(int(data2train))
 
-    X_train, X_test, Y_train, Y_test = train_test_split(X,Y,test_size=0.2)
+    #X = normalize(X)
+    X = X.T
+    print(X.shape,Y.shape)
+    #X_train, X_test, Y_train, Y_test = train_test_split(X.T,Y,test_size=0.2)
+
+    X_train = X
+    Y_train = Y
+    X_test = X
+    Y_test = Y
 
     solverList[class_solver](X_train,Y_train,X_test,Y_test)
 
