@@ -1,3 +1,5 @@
+import sys
+sys.path.insert(0, 'components/')
 from importlist import *
 
 
@@ -28,10 +30,10 @@ class csv2arrays:
 
         Y = data['quality']
 
-        X_train = X.values
-        Y_train = Y.values
+        X = X.values
+        Y = Y.values
 
-        return X_train,Y_train
+        return X,Y
     
     def tomAndJerry(data2train):
         data = pd.read_csv(DataList[data2train])
@@ -51,6 +53,7 @@ class csv2arrays:
         #X = data[['filename']].T
         # (2,5478) 
         Y = data[['tom','jerry']].T
+        Y = Y.values
         #print(X.shape,Y.shape)
 
 
@@ -106,21 +109,21 @@ def normalize(X):
 
     return X_norm
 
-# def sigmoid(z):
-#     '''
-#     vars:
-# 	m = number of training examples
-# 	n = number of features for every training example
-#     args:
-#     z (1,m)
-#     return:
-#     s (1,m)
-#     '''
+def sigmoid(z):
+    '''
+    vars:
+	m = number of training examples
+	n = number of features for every training example
+    args:
+    z (1,m)
+    return:
+    s (1,m)
+    '''
 
-#     s = 1/(1+np.exp(-z))
+    s = 1/(1+np.exp(-z))
 
 
-#     return s
+    return s
 
 
 
@@ -299,22 +302,22 @@ def log_alg(X_train,Y_train,X_test,Y_test, num_iterations=2000,learning_rate=0.5
 
 # ---------
 
-def sigmoid(Z):
-    """
-    Implements the sigmoid activation in numpy
+# def sigmoid(Z):
+#     """
+#     Implements the sigmoid activation in numpy
     
-    Arguments:
-    Z -- numpy array of any shape
+#     Arguments:
+#     Z -- numpy array of any shape
     
-    Returns:
-    A -- output of sigmoid(z), same shape as Z
-    cache -- returns Z as well, useful during backpropagation
-    """
+#     Returns:
+#     A -- output of sigmoid(z), same shape as Z
+#     cache -- returns Z as well, useful during backpropagation
+#     """
     
-    A = 1/(1+np.exp(-Z))
-    cache = Z
+#     A = 1/(1+np.exp(-Z))
+#     cache = Z
     
-    return A, cache
+#     return A, cache
 
 def relu(Z):
     """

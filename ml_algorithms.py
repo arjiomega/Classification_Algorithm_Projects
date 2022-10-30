@@ -54,21 +54,3 @@ class solver:
 
 solverList = [solver.log_alg_np, solver.log_alg_npv, solver.log_alg_sk, solver.log_alg_tf,solver.nn]
 
-def run(data2train,class_solver):
-    
-    #X, Y = csv2arrays.redWine(int(data2train))
-    X, Y = csv2arrays.tomAndJerry(int(data2train))
-
-    #X = normalize(X)
-    X = X.T
-    print(X.shape,Y.shape)
-    #X_train, X_test, Y_train, Y_test = train_test_split(X.T,Y,test_size=0.2)
-
-    X_train = X
-    Y_train = Y
-    X_test = X
-    Y_test = Y
-
-    solverList[class_solver](X_train,Y_train,X_test,Y_test)
-
-    return 1
