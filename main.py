@@ -1,8 +1,11 @@
 from ml_algorithms import *
 from functionlist import *
 
+# doesnt like to have same file name
+# sys.path.insert(0, 'logistic_algorithm/')
+# from main import *
 
-sys.path.insert(0, 'logistic_algorithm/')
+sys.path.insert(0, 'neural_network/')
 from main import *
 
 sys.path.insert(0, 'components/')
@@ -30,4 +33,6 @@ from importlist import *
 data2train = "0"
 #class_solver = "1"
 
-timer(log_alg_run,data2train)
+#timer(log_alg_run,data2train)
+
+nn_run(data2train)
