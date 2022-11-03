@@ -36,3 +36,4 @@ data2train = "0"
 #timer(log_alg_run,data2train)
 
 nn_run(data2train)
+
