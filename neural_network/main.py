@@ -31,12 +31,29 @@ def nn_run(data2train):
         "activation_function": [None,relu,relu,relu,sigmoid]
     }
 
-    # initialize parameters
-    params = initialize_params(model_architecture)
-    
-    # forward propagation
-    forward_propagation(X_train,params,model_architecture)
+    hyperparams = {
+        "learning_rate": 0.01,
+        "num_iters": 2500
+    }
 
-    # backward propagation
-    backward_propagation(model_architecture)
+    for i in range(hyperparams["num_iters"]):
+
+        # initialize parameters
+        params = initialize_params(model_architecture)
+        
+        # forward propagation
+        A_list, Z_list = forward_propagation(X_train,params,model_architecture)
+
+        # backward propagation
+        grads = backward_propagation(params,Y_train,A_list,Z_list,model_architecture)
+        
+        # update params
+        params = update_params(params,grads,hyperparams["learning_rate"],model_architecture)
+        
+        #compute cost
+        cost = cost_solver(A_list,Y_train)
+
+        if i % 100 == 0:
+            print(f"Cost after iteration {i}: {cost}")
+
     return 1

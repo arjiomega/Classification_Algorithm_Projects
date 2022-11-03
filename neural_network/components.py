@@ -1,3 +1,4 @@
+from ctypes.wintypes import DWORD
 import sys
 from tkinter import W
 sys.path.insert(0, '../components/')
@@ -32,46 +33,82 @@ def forward_propagation(X_train,params,model_architecture):
 
     activation_funcs = model_architecture["activation_function"]
 
-    # For first layer A0 is Input layer X
-    A = X_train
+    # List of A for different layers
+    A_list = []
+    Z_list = []
+    A_list.append(X_train)
+    Z_list.append(None)
 
     # iterate over all layers except input layer
     for l in range(1,L):
 
-        A_prev = A
         W = params["W" + str(l)]
         b = params["b" + str(l)]
 
-        Z = np.dot(W,A_prev) + b
-        A = activation_funcs[l](Z)
+        Z = np.dot(W,A_list[l-1]) + b
+        Z_list.append(Z)
+        A_list.append(activation_funcs[l](Z))
        
-    return 1
+    return A_list, Z_list
 
-def backward_propagation(model_architecture):
+
+
+def backward_propagation(params,Y_train,A_list,Z_list,model_architecture):
 
     L = model_architecture["layer_count"]
     activation_funcs = model_architecture["activation_function"]
 
+    m = Y_train.shape[1]
+
     grads = {}
+ 
+    counter = 0
+    for l in range((L-1),0,-1):
+        if activation_funcs[l].__name__ == "sigmoid":
 
-    for l in reversed(range(L)):
-        #dA_prev_temp, dW_temp, db_temp = linear_activation_backward(grads["dA"+str(l+1)], current_cache, "relu")
-        
-        if name_of(activation_funcs[l]) == "relu":
-            Z = 
-            
-            dZ[Z <= 0] = 0
+            if counter < 1:
+                counter += 1
 
-        elif name_of(activation_funcs[l]) == "sigmoid":
-            
-            dZ =
+                dL_dA = - (np.divide(Y_train,A_list[l]) - np.divide((1-Y_train),(1-A_list[l])))
+                dA_dZ = A_list[l] * (1-A_list[l])
+                grads["dL_dZ" + str(l)] = dL_dA * dA_dZ
 
+            else:
+                dZ_dA = params["W" + str(l+1)]
+                dA_dZ = A_list[l] * (1-A_list[l])
+                grads["dL_dZ" + str(l)] = grads["dL_dZ" + str(l+1)] * dZ_dA * dA_dZ
 
-        grads["dA" + str(l)]
-        grads["dW" + str(l)]
-        grads["db" + str(l)]
-    # dZ
-    # dW
-    # dB
-    # dA
-    return 1
+        # assuming that output layer does not use relu activation (consider this in future)
+        elif activation_funcs[l].__name__ == "relu":
+            dZ_dA = params["W" + str(l+1)]
+            dA_dZ = (Z_list[l] >= 0).astype(int)
+            grads["dL_dZ" + str(l)] = np.dot(dZ_dA.T, grads["dL_dZ" + str(l+1)]) * dA_dZ
+
+        dZ_dW = A_list[l-1]
+        dZ_db = 1
+
+        dL_dW = 1/m * np.dot(grads["dL_dZ" + str(l)], dZ_dW.T)
+        dL_db = 1/m *  grads["dL_dZ" + str(l)] 
+
+        grads["dL_dW" + str(l)] = dL_dW
+        grads["dL_db" + str(l)] = dL_db
+
+    return grads
+
+def update_params(params_input,grads,learning_rate,model_architecture):
+
+    L = model_architecture["layer_count"]
+    params = params_input.copy()
+
+    for l in range(1,L):
+        params["W" + str(l)] = params["W" + str(l)] - (learning_rate * grads["dL_dW" + str(l)])
+        params["b" + str(l)] = params["b" + str(l)] - (learning_rate * grads["dL_db" + str(l)])
+
+    return params
+
+def cost_solver(A,Y):
+
+    m = A[-1].shape[1]
+    cost = - 1/m * np.sum( np.dot(Y,np.log(A[-1].T)) + np.dot((1-Y),np.log(1-A[-1].T)) )
+
+    return cost
