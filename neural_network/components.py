@@ -37,7 +37,7 @@ def initialize_params(model_architecture):
 
     return params
 
-def forward_propagation(X_train,params,model_architecture):
+def forward_propagation(X_train,params,model_architecture,dropout_keep = 1.0):
 
     L = model_architecture["layer_count"]
 
@@ -46,8 +46,10 @@ def forward_propagation(X_train,params,model_architecture):
     # List of A for different layers
     A_list = []
     Z_list = []
+    D_list = []
     A_list.append(X_train)
     Z_list.append(None)
+    D_list.append(None)
 
     # iterate over all layers except input layer
     for l in range(1,L):
@@ -57,16 +59,36 @@ def forward_propagation(X_train,params,model_architecture):
 
         Z = np.dot(W,A_list[l-1]) + b
         Z_list.append(Z)
-        A_list.append(activation_funcs[l](Z))
-       
-    return A_list, Z_list
+
+
+        # Dropout random nodes (if dropout_keep do not do dropout)
+        A = activation_funcs[l](Z)
+
+        if l < (L-1):
+            D = np.random.rand(A.shape[0],A.shape[1])
+            D = (D < dropout_keep).astype(int)
+
+            A = np.multiply(A,D)
+            A = A / dropout_keep
+
+        else:
+            D = None
+
+        A_list.append(A)
+        D_list.append(D)
+
+    FPcache = (A_list, Z_list, D_list)
+
+    return FPcache
 
 
 
-def backward_propagation(params,Y_train,A_list,Z_list,model_architecture,lambd_=None):
+def backward_propagation(params,Y_train,FPcache,model_architecture,lambd_=None,dropout_keep = 1.0):
 
     L = model_architecture["layer_count"]
     activation_funcs = model_architecture["activation_function"]
+
+    (A_list, Z_list, D_list) = FPcache
 
     m = Y_train.shape[1]
 
@@ -86,13 +108,29 @@ def backward_propagation(params,Y_train,A_list,Z_list,model_architecture,lambd_=
             else:
                 dZ_dA = params["W" + str(l+1)]
                 dA_dZ = A_list[l] * (1-A_list[l])
-                grads["dL_dZ" + str(l)] = grads["dL_dZ" + str(l+1)] * dZ_dA * dA_dZ
+                dL_dZ = grads["dL_dZ" + str(l+1)] * dZ_dA * dA_dZ
+
+                dL_dZ = np.multiply(dL_dZ,D_list[l])
+                dL_dZ /= dropout_keep
+
+                grads["dL_dZ" + str(l)] = dL_dZ
 
         # assuming that output layer does not use relu activation (consider this in future)
         elif activation_funcs[l].__name__ == "relu":
+
+            '''# dropout part
+            if l < (L-1):
+                dL_dA = np.multiply(dL_dA,D_list[l])
+                dL_dA /= dropout_keep'''
+
             dZ_dA = params["W" + str(l+1)]
             dA_dZ = (Z_list[l] >= 0).astype(int)
-            grads["dL_dZ" + str(l)] = np.dot(dZ_dA.T, grads["dL_dZ" + str(l+1)]) * dA_dZ
+            dL_dZ = np.dot(dZ_dA.T, grads["dL_dZ" + str(l+1)]) * dA_dZ
+
+            dL_dZ = np.multiply(dL_dZ,D_list[l])
+            dL_dZ /= dropout_keep
+
+            grads["dL_dZ" + str(l)] = dL_dZ
 
         dZ_dW = A_list[l-1]
         dZ_db = 1
@@ -120,11 +158,15 @@ def update_params(params_input,grads,learning_rate,model_architecture):
 
     return params
 
-def cost_solver(A,Y,params,hyperparams,model_architecture):
+def cost_solver(FPcache,Y,params,hyperparams,model_architecture):
+
+    (A, Z_list, D_list) = FPcache
 
     m = A[-1].shape[1]
     lambd_ = hyperparams["lambd_"]
     L = model_architecture["layer_count"]
+
+    
 
     sum_params = 0
 

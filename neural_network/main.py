@@ -36,8 +36,9 @@ def nn_run(data2train):
 
     hyperparams = {
         "learning_rate": 0.01,
-        "num_iters": 25000,
-        "lambd_": 0.1
+        "num_iters": 2500,
+        "lambd_": 0.1,
+        "dropout_keep": 0.8
     }
 
     costs = []
@@ -48,18 +49,18 @@ def nn_run(data2train):
         params = initialize_params(model_architecture)
         
         # forward propagation
-        A_list, Z_list = forward_propagation(X_train,params,model_architecture)
+        FPcache = forward_propagation(X_train,params,model_architecture,hyperparams["dropout_keep"])
 
         # backward propagation
-        grads = backward_propagation(params,Y_train,A_list,Z_list,model_architecture,hyperparams["lambd_"])
+        grads = backward_propagation(params,Y_train,FPcache,model_architecture,hyperparams["lambd_"])
         
         # update params
         params = update_params(params,grads,hyperparams["learning_rate"],model_architecture)
         
         #compute cost
-        cost = cost_solver(A_list,Y_train,params,hyperparams,model_architecture)
+        cost = cost_solver(FPcache,Y_train,params,hyperparams,model_architecture)
         costs.append(cost)
-        if i % 1000 == 0:
+        if i % 100 == 0:
             print(f"Cost after iteration {i}: {cost}")
             
 
