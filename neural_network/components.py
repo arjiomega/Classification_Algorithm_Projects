@@ -4,6 +4,10 @@ from tkinter import W
 sys.path.insert(0, '../components/')
 from importlist import *
 
+def normalize(X):
+    X_norm = X / np.linalg.norm(X,axis=1,ord=2,keepdims= True)
+    return X_norm
+
 # Activation Functions
 def sigmoid(Z):
     A = 1 / (1+np.exp(-Z))
@@ -20,9 +24,15 @@ def initialize_params(model_architecture):
 
     L = model_architecture["layer_count"]
     nodes = model_architecture["node_count"]
+    activation_funcs = model_architecture["activation_function"]
 
     for l in range(1,L):
-        params["W" + str(l)] = np.random.randn(nodes[l], nodes[l-1])* 0.01
+        if activation_funcs[l].__name__ == "sigmoid":
+            multiplier = 0.01
+        elif activation_funcs[l].__name__ == "relu":
+            multiplier = np.sqrt(2/nodes[l-1])
+
+        params["W" + str(l)] = np.random.randn(nodes[l], nodes[l-1]) * multiplier
         params["b" + str(l)] = np.zeros((nodes[l], 1))
 
     return params
@@ -53,7 +63,7 @@ def forward_propagation(X_train,params,model_architecture):
 
 
 
-def backward_propagation(params,Y_train,A_list,Z_list,model_architecture):
+def backward_propagation(params,Y_train,A_list,Z_list,model_architecture,lambd_=None):
 
     L = model_architecture["layer_count"]
     activation_funcs = model_architecture["activation_function"]
@@ -87,7 +97,11 @@ def backward_propagation(params,Y_train,A_list,Z_list,model_architecture):
         dZ_dW = A_list[l-1]
         dZ_db = 1
 
-        dL_dW = 1/m * np.dot(grads["dL_dZ" + str(l)], dZ_dW.T)
+        if lambd_ == None:
+            dL_dW = 1/m * np.dot(grads["dL_dZ" + str(l)], dZ_dW.T)
+        else:
+            dL_dW = 1/m * np.dot(grads["dL_dZ" + str(l)], dZ_dW.T) + ( (lambd_/m) * params["W" + str(l)] )
+
         dL_db = 1/m *  grads["dL_dZ" + str(l)] 
 
         grads["dL_dW" + str(l)] = dL_dW
@@ -106,9 +120,19 @@ def update_params(params_input,grads,learning_rate,model_architecture):
 
     return params
 
-def cost_solver(A,Y):
+def cost_solver(A,Y,params,hyperparams,model_architecture):
 
     m = A[-1].shape[1]
-    cost = - 1/m * np.sum( np.dot(Y,np.log(A[-1].T)) + np.dot((1-Y),np.log(1-A[-1].T)) )
+    lambd_ = hyperparams["lambd_"]
+    L = model_architecture["layer_count"]
+
+    sum_params = 0
+
+    for l in range(1,L):
+        sum_params +=   np.sum(np.square(  params["W" + str(l)]  ))  
+
+    L2_regularization = 1/m * lambd_/2 * sum_params
+
+    cost = - 1/m * np.sum( np.dot(Y,np.log(A[-1].T)) + np.dot((1-Y),np.log(1-A[-1].T)) ) + L2_regularization
 
     return cost
