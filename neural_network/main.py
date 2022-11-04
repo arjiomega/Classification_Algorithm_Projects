@@ -36,20 +36,23 @@ def nn_run(data2train):
 
     hyperparams = {
         "learning_rate": 0.01,
-        "num_iters": 2500,
+        "num_iters": 50000,
         "lambd_": 0.1,
         "dropout_keep": 0.8
     }
 
     costs = []
 
+    # initialize parameters
+    params = initialize_params(model_architecture)
+
     for i in range(hyperparams["num_iters"]):
 
-        # initialize parameters
-        params = initialize_params(model_architecture)
-        
         # forward propagation
         FPcache = forward_propagation(X_train,params,model_architecture,hyperparams["dropout_keep"])
+
+        #compute cost
+        cost = cost_solver(FPcache,Y_train,params,hyperparams,model_architecture)
 
         # backward propagation
         grads = backward_propagation(params,Y_train,FPcache,model_architecture,hyperparams["lambd_"])
@@ -57,10 +60,9 @@ def nn_run(data2train):
         # update params
         params = update_params(params,grads,hyperparams["learning_rate"],model_architecture)
         
-        #compute cost
-        cost = cost_solver(FPcache,Y_train,params,hyperparams,model_architecture)
+        
         costs.append(cost)
-        if i % 100 == 0:
+        if i % 10000 == 0:
             print(f"Cost after iteration {i}: {cost}")
             
 
@@ -74,7 +76,7 @@ def nn_run(data2train):
     # naming the y axis
     plt.ylabel('Cost')
 
-    plt.ylim(0.6, 0.8) 
+    #plt.ylim(0.6, 0.8) 
     
     # giving a title to my graph
     plt.title('Cost per iteration')
