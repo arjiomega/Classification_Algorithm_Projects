@@ -39,8 +39,6 @@ def log_alg_run(data2train):
     X_test = Dataset["X_test"]
     Y_test = Dataset["Y_test"]
 
-
-
     n,m = X_train.shape
 
     w = np.zeros((n,1))
