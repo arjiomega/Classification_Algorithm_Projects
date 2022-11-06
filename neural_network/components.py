@@ -147,14 +147,84 @@ def backward_propagation(params,Y_train,FPcache,model_architecture,lambd_=None,d
 
     return grads
 
-def update_params(params_input,grads,learning_rate,model_architecture):
+def optimizer_func(params,grads,hyperparams,optimizer,L,t):
+
+    learning_rate = hyperparams["learning_rate"]
+    epsilon = hyperparams["epsilon"]
+
+    V = {}
+    S = {}
+
+    # Initialize Optimizer Grads
+    for l in range(1,L):
+        if (optimizer == "momentum" or optimizer ==  "adam") :
+            V["dW" + str(l)] = np.zeros((params['W' + str(l)].shape))
+            V["db" + str(l)] = np.zeros((params['b' + str(l)].shape))
+
+        if (optimizer == "rmsprop" or optimizer ==  "adam"):
+            S["dW" + str(l)] = np.zeros((params['W' + str(l)].shape))
+            S["db" + str(l)] = np.zeros((params['b' + str(l)].shape))
+
+
+    # Momentum
+    if (optimizer == "momentum" or optimizer ==  "adam") :
+
+        beta_1 = hyperparams["beta_1"]
+
+        if optimizer == "momentum":
+            for l in range(1,L):
+                V["dW" + str(l)] = beta_1 * V["dW" + str(l)] + ( (1-beta_1) * grads["dL_dW" + str(l)] )
+                V["db" + str(l)] = beta_1 * V["db" + str(l)] + ( (1-beta_1) * grads["dL_db" + str(l)] )
+
+                params["W" + str(l)] = params["W" + str(l)] - (learning_rate * V["dW" + str(l)])
+                params["b" + str(l)] = params["b" + str(l)] - (learning_rate * V["db" + str(l)])
+
+    # RMSprop
+    if (optimizer == "rmsprop" or optimizer ==  "adam"):
+
+        beta_2 = hyperparams["beta_2"]
+
+        S["dW" + str(l)] = beta_2 * S["dW" + str(l)] + ( (1-beta_2) * np.square(grads["dL_dW" + str(l)]) )
+        S["db" + str(l)] = beta_2 * S["db" + str(l)] + ( (1-beta_2) * np.square(grads["dL_db" + str(l)]) )
+
+        if optimizer == "rmsprop":
+
+            for l in range(1,L):
+                params["W" + str(l)] = params["W" + str(l)] - (learning_rate * (grads["dL_dW" + str(l)]/(np.sqrt(S["dW" + str(l)])+epsilon)) )
+                params["b" + str(l)] = params["b" + str(l)] - (learning_rate * (grads["dL_db" + str(l)]/(np.sqrt(S["db" + str(l)])+epsilon)) )
+
+
+    # Adam
+    if optimizer == "adam":
+
+        for l in range(1,L):
+            ## Bias Correction
+            V["dW" + str(l)] = V["dW" + str(l)] / (1-np.power(beta_1,t))
+            V["db" + str(l)] = V["db" + str(l)] / (1-np.power(beta_1,t))
+
+            S["dW" + str(l)] = S["dW" + str(l)] / (1-np.power(beta_2,t))
+            S["db" + str(l)] = S["db" + str(l)] / (1-np.power(beta_2,t))
+
+            params["W" + str(l)] = params["W" + str(l)] - (learning_rate * (V["dW" + str(l)]/(np.sqrt(S["dW" + str(l)])+epsilon)) )
+            params["b" + str(l)] = params["b" + str(l)] - (learning_rate * (V["db" + str(l)]/(np.sqrt(S["db" + str(l)])+epsilon)) )
+
+
+    return params
+
+def update_params(t,params_input,grads,hyperparams,model_architecture,optimizer=None):
 
     L = model_architecture["layer_count"]
     params = params_input.copy()
+    learning_rate = hyperparams["learning_rate"]
 
-    for l in range(1,L):
-        params["W" + str(l)] = params["W" + str(l)] - (learning_rate * grads["dL_dW" + str(l)])
-        params["b" + str(l)] = params["b" + str(l)] - (learning_rate * grads["dL_db" + str(l)])
+    if optimizer == None:
+        for l in range(1,L):
+            params["W" + str(l)] = params["W" + str(l)] - (learning_rate * grads["dL_dW" + str(l)])
+            params["b" + str(l)] = params["b" + str(l)] - (learning_rate * grads["dL_db" + str(l)])
+
+    else:
+        t += 1
+        params = optimizer_func(params,grads,hyperparams,optimizer,L,t)
 
     return params
 

@@ -35,10 +35,16 @@ def nn_run(data2train):
     }
 
     hyperparams = {
-        "learning_rate": 0.01,
-        "num_iters": 50000,
+        "learning_rate": 0.1,
+        "num_iters": 100000,
+        # for regularization
         "lambd_": 0.1,
-        "dropout_keep": 0.8
+        # for dropout
+        "dropout_keep": 1.0,
+        # for optimizer
+        "beta_1": 0.9,
+        "beta_2": 0.999,
+        "epsilon": 10e-08
     }
 
     costs = []
@@ -58,7 +64,7 @@ def nn_run(data2train):
         grads = backward_propagation(params,Y_train,FPcache,model_architecture,hyperparams["lambd_"])
         
         # update params
-        params = update_params(params,grads,hyperparams["learning_rate"],model_architecture)
+        params = update_params(i,params,grads,hyperparams,model_architecture,optimizer="rmsprop") # optimizer="adam"
         
         
         costs.append(cost)
