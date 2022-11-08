@@ -155,6 +155,9 @@ def optimizer_func(params,grads,hyperparams,optimizer,L,t):
     V = {}
     S = {}
 
+    V_corr = {}
+    S_corr = {}
+
     # Initialize Optimizer Grads
     for l in range(1,L):
         if (optimizer == "momentum" or optimizer ==  "adam") :
@@ -171,10 +174,12 @@ def optimizer_func(params,grads,hyperparams,optimizer,L,t):
 
         beta_1 = hyperparams["beta_1"]
 
-        if optimizer == "momentum":
-            for l in range(1,L):
-                V["dW" + str(l)] = beta_1 * V["dW" + str(l)] + ( (1-beta_1) * grads["dL_dW" + str(l)] )
-                V["db" + str(l)] = beta_1 * V["db" + str(l)] + ( (1-beta_1) * grads["dL_db" + str(l)] )
+        for l in range(1,L):
+
+            V["dW" + str(l)] = beta_1 * V["dW" + str(l)] + ( (1-beta_1) * grads["dL_dW" + str(l)] )
+            V["db" + str(l)] = beta_1 * V["db" + str(l)] + ( (1-beta_1) * grads["dL_db" + str(l)] )
+
+            if optimizer == "momentum":
 
                 params["W" + str(l)] = params["W" + str(l)] - (learning_rate * V["dW" + str(l)])
                 params["b" + str(l)] = params["b" + str(l)] - (learning_rate * V["db" + str(l)])
@@ -184,17 +189,17 @@ def optimizer_func(params,grads,hyperparams,optimizer,L,t):
 
         beta_2 = hyperparams["beta_2"]
 
-        S["dW" + str(l)] = beta_2 * S["dW" + str(l)] + ( (1-beta_2) * np.square(grads["dL_dW" + str(l)]) )
-        S["db" + str(l)] = beta_2 * S["db" + str(l)] + ( (1-beta_2) * np.square(grads["dL_db" + str(l)]) )
+        for l in range(1,L):
+            S["dW" + str(l)] = beta_2 * S["dW" + str(l)] + ( (1-beta_2) * np.power(grads["dL_dW" + str(l)],2) )
+            S["db" + str(l)] = beta_2 * S["db" + str(l)] + ( (1-beta_2) * np.power(grads["dL_db" + str(l)],2) )
 
-        if optimizer == "rmsprop":
-
-            for l in range(1,L):
+            if optimizer == "rmsprop":
                 params["W" + str(l)] = params["W" + str(l)] - (learning_rate * (grads["dL_dW" + str(l)]/(np.sqrt(S["dW" + str(l)])+epsilon)) )
                 params["b" + str(l)] = params["b" + str(l)] - (learning_rate * (grads["dL_db" + str(l)]/(np.sqrt(S["db" + str(l)])+epsilon)) )
+                
 
 
-    # Adam
+    # Adam (Adaptive Moment Estimation)
     if optimizer == "adam":
 
         for l in range(1,L):
@@ -248,3 +253,48 @@ def cost_solver(FPcache,Y,params,hyperparams,model_architecture):
     cost = - 1/m * np.sum( np.dot(Y,np.log(A[-1].T)) + np.dot((1-Y),np.log(1-A[-1].T)) ) + L2_regularization
 
     return cost
+
+def gd_method(Dataset,method="minibatch",mini_batch_size = 64):
+
+    X = Dataset["X_train"]
+    Y = Dataset["Y_train"]
+
+    m = X.shape[1]
+
+   
+
+    if method == "minibatch":
+
+        permutation = list(np.random.permutation(m))
+        shuffle_X = X[:,permutation]
+        shuffle_Y = Y[:,permutation]
+
+        mini_batch_list = []
+
+        mini_batch_total = math.floor(m/mini_batch_size)
+
+        '''
+        if m = 1279
+        mini_batch_size = 64
+        then mini_batch_total = 19.984375
+        (use math floor to round of to 19 then process remainder)
+        '''
+
+        for i in range(mini_batch_total):
+
+            mini_X = shuffle_X[:, (i*mini_batch_size) : (i+1)*mini_batch_size]
+            mini_Y = shuffle_Y[:, (i*mini_batch_size) : (i+1)*mini_batch_size]
+
+            mini_batch = (mini_X, mini_Y)
+            mini_batch_list.append(mini_batch)
+        
+        # for the remainder
+        if m % mini_batch_size != 0:
+            mini_X = shuffle_X[:, ((i+1)*mini_batch_size) : ]
+            mini_Y = shuffle_Y[:, ((i+1)*mini_batch_size) : ]
+
+            mini_batch = (mini_X, mini_Y)
+            mini_batch_list.append(mini_batch)
+
+
+    return mini_batch_list
