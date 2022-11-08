@@ -58,10 +58,11 @@ def forward_propagation(X_train,params,model_architecture,dropout_keep = 1.0):
         b = params["b" + str(l)]
 
         Z = np.dot(W,A_list[l-1]) + b
+
         Z_list.append(Z)
 
 
-        # Dropout random nodes (if dropout_keep do not do dropout)
+        # Dropout random nodes (if dropout_keep = 1.0, do not do dropout)
         A = activation_funcs[l](Z)
 
         if l < (L-1):
@@ -93,17 +94,21 @@ def backward_propagation(params,Y_train,FPcache,model_architecture,lambd_=None,d
     m = Y_train.shape[1]
 
     grads = {}
- 
+
     counter = 0
     for l in range((L-1),0,-1):
+
         if activation_funcs[l].__name__ == "sigmoid":
 
             if counter < 1:
                 counter += 1
+                #print(f"Y {Y_train.shape} A {A_list[l].shape}")
 
                 dL_dA = - (np.divide(Y_train,A_list[l]) - np.divide((1-Y_train),(1-A_list[l])))
                 dA_dZ = A_list[l] * (1-A_list[l])
+
                 grads["dL_dZ" + str(l)] = dL_dA * dA_dZ
+
 
             else:
                 dZ_dA = params["W" + str(l+1)]
@@ -114,6 +119,7 @@ def backward_propagation(params,Y_train,FPcache,model_architecture,lambd_=None,d
                 dL_dZ /= dropout_keep
 
                 grads["dL_dZ" + str(l)] = dL_dZ
+ 
 
         # assuming that output layer does not use relu activation (consider this in future)
         elif activation_funcs[l].__name__ == "relu":
@@ -131,19 +137,31 @@ def backward_propagation(params,Y_train,FPcache,model_architecture,lambd_=None,d
             dL_dZ /= dropout_keep
 
             grads["dL_dZ" + str(l)] = dL_dZ
+            
 
         dZ_dW = A_list[l-1]
-        dZ_db = 1
+        dZ_db = np.ones([m,1])
 
         if lambd_ == None:
             dL_dW = 1/m * np.dot(grads["dL_dZ" + str(l)], dZ_dW.T)
         else:
             dL_dW = 1/m * np.dot(grads["dL_dZ" + str(l)], dZ_dW.T) + ( (lambd_/m) * params["W" + str(l)] )
 
-        dL_db = 1/m *  grads["dL_dZ" + str(l)] 
+        dL_db = 1/m *   np.dot(grads["dL_dZ" + str(l)] ,dZ_db) 
+
+        # print("dZ_dW ",dZ_dW.shape)
+        # print("dL_dZ ",grads["dL_dZ" + str(l)].shape)
+        # print("dL_dW ",dL_dW.shape)
+        # print("dL_db ",dL_db.shape)
 
         grads["dL_dW" + str(l)] = dL_dW
         grads["dL_db" + str(l)] = dL_db
+        
+        
+        
+        #print(f"dZ_dA {dZ_dA}, dA_dZ {dA_dZ}, dL_dZ {dL_dZ}")
+        
+        
 
     return grads
 
@@ -221,17 +239,26 @@ def update_params(t,params_input,grads,hyperparams,model_architecture,optimizer=
     L = model_architecture["layer_count"]
     params = params_input.copy()
     learning_rate = hyperparams["learning_rate"]
-
+    #print("\nupdate parameter")
     if optimizer == None:
         for l in range(1,L):
+            # print(f"current layer {l}")
+            b_show = params["b" + str(l)]
+            db_show = grads["dL_db" + str(l)]
+            # print(f"b {b_show.shape} db {db_show.shape} ")
+
             params["W" + str(l)] = params["W" + str(l)] - (learning_rate * grads["dL_dW" + str(l)])
             params["b" + str(l)] = params["b" + str(l)] - (learning_rate * grads["dL_db" + str(l)])
+            b_show = params["b" + str(l)]
+            # print(f"updated b {b_show.shape}")
 
     else:
         t += 1
         params = optimizer_func(params,grads,hyperparams,optimizer,L,t)
 
     return params
+
+
 
 def cost_solver(FPcache,Y,params,hyperparams,model_architecture):
 
@@ -253,6 +280,8 @@ def cost_solver(FPcache,Y,params,hyperparams,model_architecture):
     cost = - 1/m * np.sum( np.dot(Y,np.log(A[-1].T)) + np.dot((1-Y),np.log(1-A[-1].T)) ) + L2_regularization
 
     return cost
+
+
 
 def gd_method(Dataset,method="minibatch",mini_batch_size = 64):
 
@@ -298,3 +327,33 @@ def gd_method(Dataset,method="minibatch",mini_batch_size = 64):
 
 
     return mini_batch_list
+
+
+def learning_decay(hyperparams, epoch):
+
+    learning_rate_ini = hyperparams["learning_rate"]
+    decay_rate = hyperparams["decay_rate"]
+    decay_interval = hyperparams["decay_interval"]
+    epoch += 1
+
+    learning_rate = (1 / (1 + (decay_rate* math.floor(epoch/decay_interval)))) *learning_rate_ini
+
+    return learning_rate
+
+def train(X_train, Y_train, params, hyperparams, model_architecture,epoch):
+    
+
+    # forward propagation
+    FPcache = forward_propagation(X_train,params,model_architecture,hyperparams["dropout_keep"])
+
+    # compute cost
+    cost = cost_solver(FPcache,Y_train,params,hyperparams,model_architecture)
+
+    # backward propagation
+    grads = backward_propagation(params,Y_train,FPcache,model_architecture,hyperparams["lambd_"])
+
+    # update params
+    params = update_params(epoch,params,grads,hyperparams,model_architecture,optimizer="adam")
+
+
+    return cost, params
