@@ -16,6 +16,9 @@ from numpy import asarray
 # store array
 import h5py
 
+#multiprocessing
+import multiprocessing
+
 #scikit learn imports 
 import sklearn
 from sklearn.model_selection import train_test_split
