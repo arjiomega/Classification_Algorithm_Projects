@@ -111,24 +111,27 @@ DataList_funcs = [
 
 def initialize_dataset(data2train, run_normalize = False, test_size = 0.2):
 
-    X, Y = DataList_funcs[data2train](data2train)
+    X_train, Y_train = DataList_funcs[data2train](data2train)
 
     if run_normalize:
         X = normalize(X)
 
-    X_train, X_test, Y_train, Y_test = train_test_split(X,Y,test_size=test_size)
+    print(X_train.shape,Y_train.shape)
+
+    # off temporary for tom and jerry dataset
+    #X_train, X_test, Y_train, Y_test = train_test_split(X,Y,test_size=test_size)
 
     X_train = X_train.T
     Y_train = (np.reshape(Y_train,(-1,1))).T
-    X_test = X_test.T
-    Y_test  = (np.reshape(Y_test,(-1,1))).T
+    #X_test = X_test.T
+    #Y_test  = (np.reshape(Y_test,(-1,1))).T
 
 
     Dataset = {
         "X_train": X_train,
         "Y_train": Y_train,
-        "X_test": X_test,
-        "Y_test": Y_test,
+        #"X_test": X_test,
+        #"Y_test": Y_test,
     }
 
     return Dataset
