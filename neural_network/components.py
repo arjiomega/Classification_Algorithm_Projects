@@ -32,7 +32,7 @@ def initialize_params(model_architecture):
         elif activation_funcs[l].__name__ == "relu":
             multiplier = np.sqrt(2/nodes[l-1])
 
-        params["W" + str(l)] = np.random.randn(nodes[l], nodes[l-1]) * multiplier
+        params["W" + str(l)] = np.random.rand(nodes[l], nodes[l-1]) * multiplier
         params["b" + str(l)] = np.zeros((nodes[l], 1))
 
     return params
@@ -276,6 +276,10 @@ def cost_solver(FPcache,Y,params,hyperparams,model_architecture):
         sum_params +=   np.sum(np.square(  params["W" + str(l)]  ))  
 
     L2_regularization = 1/m * lambd_/2 * sum_params
+
+    #print("cost solver")
+    #print("Y shape: ",Y.shape)
+    #print("A shape: ",A[-1].shape)
 
     cost = - 1/m * np.sum( np.dot(Y,np.log(A[-1].T)) + np.dot((1-Y),np.log(1-A[-1].T)) ) + L2_regularization
 

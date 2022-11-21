@@ -19,6 +19,9 @@ import h5py
 #multiprocessing
 import multiprocessing
 
+# flatting arrays for gradient checking
+from pandas.core.common import flatten
+
 #scikit learn imports 
 import sklearn
 from sklearn.model_selection import train_test_split

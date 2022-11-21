@@ -31,8 +31,8 @@ class csv2arrays:
 
         Y = data['quality']
 
-        X = X.values
-        Y = Y.values
+        X = (X.values).T
+        Y = (Y.values)
 
         return X,Y
     
@@ -53,17 +53,18 @@ class csv2arrays:
         # (1,5478) -> (imageArray, number of examples)
         #X = data[['filename']].T
         # (2,5478) 
-        Y = data[['tom','jerry']].T
+        Y = data[['tom','jerry']]
         Y = Y.values
-        #print(X.shape,Y.shape)
+        #print("from mini batching")
+        print(Y.shape)
 
 
-        file_list = os.listdir(data_imgSetLoc)
+        # file_list = os.listdir(data_imgSetLoc)
 
-        file_list.sort(key= lambda i: int(i.lstrip('frame').rstrip('.jpg')))
+        # file_list.sort(key= lambda i: int(i.lstrip('frame').rstrip('.jpg')))
 
 
-        #index = 0
+        # index = 0
 
         # for file in file_list:
         #     comp_path = Image.open(data_imgSetLoc + file)
@@ -77,18 +78,20 @@ class csv2arrays:
         #     # plt.imshow(toAdd, interpolation='nearest')
         #     # plt.show()
 
-        #     toAdd = np.reshape(toAdd, (1,-1))
+        #     # from (1, -1) to (-1, 1)
+        #     toAdd = np.reshape(toAdd, (-1,1))
 
-
+        #     print("image dim: ", toAdd.shape)
 
         #     if index < 1:
         #         index += 1
         #         X = copy.deepcopy(toAdd)
 
         #     else:
-        #         X = np.append(X, toAdd, axis=0)
+        #         X = np.append(X, toAdd, axis=1)
               
         #     print(file)
+        #     print("new X shape: ", X.shape)
 
         # prepare dataset file
         # h5f = h5py.File('TomAndJerryDataset.h5','w')
@@ -116,20 +119,22 @@ def initialize_dataset(data2train, run_normalize = False, test_size = 0.2):
     if run_normalize:
         X = normalize(X)
 
-    print(X_train.shape,Y_train.shape)
+    #print(X_train.shape,Y_train.shape)
+    # X (5478,110592) Y (2,5478)
 
     # off temporary for tom and jerry dataset
     #X_train, X_test, Y_train, Y_test = train_test_split(X,Y,test_size=test_size)
 
-    X_train = X_train.T
-    Y_train = (np.reshape(Y_train,(-1,1))).T
+    # remove transpose of X_train and do it directly in the dataprep of tom and jerry dataset [temporary]
+    #X_train = X_train.T
+    Y_train = (np.reshape(Y_train,(Y_train.shape[0],-1))).T
     #X_test = X_test.T
     #Y_test  = (np.reshape(Y_test,(-1,1))).T
 
 
     Dataset = {
         "X_train": X_train,
-        "Y_train": Y_train,
+        "Y_train": Y_train
         #"X_test": X_test,
         #"Y_test": Y_test,
     }

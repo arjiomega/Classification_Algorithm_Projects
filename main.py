@@ -17,7 +17,7 @@ from importlist import *
 
 # print("\nchoose data to train \n\
 #     0: Red Wine Quality \n\
-#     1: \n \
+#     1: Tom and Jerry Image Classification \
 #     \n")
 #data2train = input("Input: ")
 
@@ -30,7 +30,7 @@ from importlist import *
 #     \n")
 #class_solver = input("Input: ")
 
-data2train = "0"
+data2train = "1"
 #class_solver = "1"
 
 #timer(log_alg_run,data2train)
