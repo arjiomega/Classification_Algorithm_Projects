@@ -30,7 +30,7 @@ from importlist import *
 #     \n")
 #class_solver = input("Input: ")
 
-data2train = "1"
+data2train = "0"
 #class_solver = "1"
 
 #timer(log_alg_run,data2train)

@@ -31,7 +31,7 @@ class csv2arrays:
 
         Y = data['quality']
 
-        X = (X.values).T
+        X = (X.values)
         Y = (Y.values)
 
         return X,Y
@@ -114,29 +114,24 @@ DataList_funcs = [
 
 def initialize_dataset(data2train, run_normalize = False, test_size = 0.2):
 
-    X_train, Y_train = DataList_funcs[data2train](data2train)
+    X, Y = DataList_funcs[data2train](data2train)
 
     if run_normalize:
         X = normalize(X)
 
-    #print(X_train.shape,Y_train.shape)
-    # X (5478,110592) Y (2,5478)
+    X_train, X_test, Y_train, Y_test = train_test_split(X,Y,test_size=test_size)
 
-    # off temporary for tom and jerry dataset
-    #X_train, X_test, Y_train, Y_test = train_test_split(X,Y,test_size=test_size)
-
-    # remove transpose of X_train and do it directly in the dataprep of tom and jerry dataset [temporary]
-    #X_train = X_train.T
+    X_train = X_train.T
     Y_train = (np.reshape(Y_train,(Y_train.shape[0],-1))).T
-    #X_test = X_test.T
-    #Y_test  = (np.reshape(Y_test,(-1,1))).T
+    X_test = X_test.T
+    Y_test  = (np.reshape(Y_test,(-1,1))).T
 
 
     Dataset = {
         "X_train": X_train,
-        "Y_train": Y_train
-        #"X_test": X_test,
-        #"Y_test": Y_test,
+        "Y_train": Y_train,
+        "X_test": X_test,
+        "Y_test": Y_test,
     }
 
     return Dataset
