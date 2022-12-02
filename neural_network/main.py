@@ -18,16 +18,13 @@ def nn_run(data2train): # X (n,m) Y (1,m)
     X (n,m) || Y (1,m)
     '''
 
-    Dataset = initialize_dataset(int(data2train))
+    Dataset = initialize_dataset(int(data2train),run_normalize = True)
 
     X_train = Dataset["X_train"]
     Y_train = Dataset["Y_train"]
-    #X_test = Dataset["X_test"]
-    #Y_test = Dataset["Y_test"]
+    X_test = Dataset["X_test"]
+    Y_test = Dataset["Y_test"]
 
-    #X_train = normalize(X_train)
-
-    print(X_train.shape,Y_train.shape)
 
     m = X_train.shape[1]
 
@@ -79,7 +76,6 @@ def nn_run(data2train): # X (n,m) Y (1,m)
             X_train, Y_train =  mini_batch_list[mini_batch_index]
 
             # train model
-            #print(X_train.shape,Y_train.shape)
             cost, params = train(X_train,Y_train, params, hyperparams,model_architecture,epoch)
             cost_total += cost
 
@@ -96,9 +92,9 @@ def nn_run(data2train): # X (n,m) Y (1,m)
 
         
 
-        #if epoch % 1000 == 0:
-        print(f"Cost after iteration {epoch}: {cost_avg}")
-            #print("learning rate: ",hyperparams["learning_rate"])
+        if epoch % 1000 == 0:
+            print(f"Cost after iteration {epoch}: {cost_avg}")
+            print("learning rate: ",hyperparams["learning_rate"])
             
             
 
